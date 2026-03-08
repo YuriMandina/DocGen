@@ -1,26 +1,73 @@
 <template>
   <div class="app-container">
-    <header class="glass-header">
-      <div class="header-content">
-        <h1>📑 Sistema de Contratos</h1>
-        <nav class="main-nav">
-          <router-link to="/cargos">🏢 Cargos</router-link>
-          <router-link to="/funcionarios">👥 Funcionários</router-link>
-          <router-link to="/modelos">📄 Modelos</router-link>       
-          <router-link to="/gerar">🖨️ Gerar Contrato</router-link> 
-        </nav>
+    <header class="glass-header" v-if="isLoggedIn">
+      <div class="header-content flex-between">
+        <div>
+          <h1>📑 DocGen</h1>
+          <p class="text-muted" style="margin: 0; font-size: 0.85rem;">
+            Olá, <strong>{{ currentUser.full_name }}</strong> 
+            <span v-if="currentUser.is_master" class="badge-master">👑 Master</span>
+          </p>
+        </div>
+        
+        <div class="nav-wrapper">
+          <nav class="main-nav">
+            <router-link to="/cargos">🏢 Cargos</router-link>
+            <router-link to="/funcionarios">👥 Funcionários</router-link>
+            <router-link to="/modelos">📄 Modelos</router-link>       
+            <router-link to="/gerar">🖨️ Gerar</router-link> 
+            <router-link v-if="currentUser.is_master" to="/aprovacoes" class="master-link">🛡️ Aprovações</router-link> 
+          </nav>
+          <button @click="logout" class="btn-logout" title="Sair do sistema">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+          </button>
+        </div>
       </div>
     </header>
 
     <main class="main-content">
       <router-view v-slot="{ Component }">
         <transition name="fade-slide" mode="out-in">
-          <component :is="Component" />
+          <component :is="Component" @login-success="atualizarSessao" />
         </transition>
       </router-view>
     </main>
   </div>
 </template>
+
+<script setup>
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+const isLoggedIn = ref(false);
+const currentUser = ref({});
+
+const atualizarSessao = () => {
+  const token = localStorage.getItem('@DocGen:token');
+  const user = localStorage.getItem('@DocGen:user');
+  
+  if (token && user) {
+    isLoggedIn.value = true;
+    currentUser.value = JSON.parse(user);
+  } else {
+    isLoggedIn.value = false;
+    currentUser.value = {};
+  }
+};
+
+const logout = () => {
+  localStorage.removeItem('@DocGen:token');
+  localStorage.removeItem('@DocGen:user');
+  atualizarSessao();
+  router.push('/login');
+};
+
+// Verifica a sessão quando o app carrega
+onMounted(() => {
+  atualizarSessao();
+});
+</script>
 
 <style>
 /* Importando a fonte Inter do Google */
@@ -115,4 +162,12 @@ body {
   opacity: 0;
   transform: translateY(-20px);
 }
+
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+.nav-wrapper { display: flex; align-items: center; gap: 1rem; }
+.badge-master { background: #fef08a; color: #854d0e; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 5px; }
+.master-link { border-bottom: 2px solid #eab308 !important; }
+.btn-logout { background: transparent; border: none; color: #ef4444; padding: 8px; cursor: pointer; border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.btn-logout:hover { background: #fef2f2; }
+.btn-logout svg { width: 1.5rem; height: 1.5rem; }
 </style>

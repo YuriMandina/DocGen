@@ -1,7 +1,16 @@
 # backend/models.py
 import enum
 
-from sqlalchemy import Column, Integer, String, Date, ForeignKey, Enum, LargeBinary
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Date,
+    ForeignKey,
+    Enum,
+    LargeBinary,
+    Boolean,
+)
 from sqlalchemy.orm import relationship
 
 from database import Base
@@ -19,6 +28,47 @@ class ContractType(enum.Enum):
 
 
 # =====================================================================
+#             TABELAS DE AUTENTICAÇÃO E MULTI-TENANCY
+# =====================================================================
+
+
+class Company(Base):
+    """Entidade que representa os inquilinos (empresas) do sistema."""
+
+    __tablename__ = "companies"
+
+    id = Column(Integer, primary_key=True, index=True)
+    business_name = Column(String, nullable=False)  # Razão Social ou Nome Fantasia
+    cnpj = Column(String, unique=True, index=True, nullable=False)
+
+    # Relacionamentos
+    users = relationship("User", back_populates="company")
+    roles = relationship("Role", back_populates="company")
+    employees = relationship("Employee", back_populates="company")
+    contracts = relationship("ContractTemplate", back_populates="company")
+
+
+class User(Base):
+    """Entidade de acesso ao sistema (Pessoas que fazem login)."""
+
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    full_name = Column(String, nullable=False)
+    cpf = Column(String, unique=True, index=True, nullable=False)
+
+    # Controle de Acesso e Aprovação
+    is_master = Column(Boolean, default=False, nullable=False)
+    is_approved = Column(Boolean, default=False, nullable=False)
+
+    # Vínculo com a empresa (Isolamento de Dados)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    company = relationship("Company", back_populates="users")
+
+
+# =====================================================================
 #                        TABELA: CARGOS (ROLES)
 # =====================================================================
 
@@ -30,6 +80,9 @@ class Role(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True, nullable=False)
+
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    company = relationship("Company", back_populates="roles")
 
     # Relacionamentos (Bidirecionais) para facilitar buscas cruzadas
     employees = relationship("Employee", back_populates="role")
@@ -55,8 +108,10 @@ class Employee(Base):
 
     # Relacionamento com a tabela de Cargos
     role_id = Column(Integer, ForeignKey("roles.id"), nullable=False)
-
     role = relationship("Role", back_populates="employees")
+
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    company = relationship("Company", back_populates="employees")
 
 
 # =====================================================================
@@ -78,3 +133,6 @@ class ContractTemplate(Base):
     role_id = Column(Integer, ForeignKey("roles.id"), nullable=True)
 
     role = relationship("Role", back_populates="contracts")
+
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    company = relationship("Company", back_populates="contracts")

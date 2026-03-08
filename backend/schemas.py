@@ -4,7 +4,69 @@ from typing import Optional
 
 from models import ContractType
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
+
+
+# =====================================================================
+#                        DOMÍNIO: EMPRESA E USUÁRIO
+# =====================================================================
+
+
+class CompanyBase(BaseModel):
+    business_name: str = Field(..., description="Razão Social ou Nome Fantasia")
+    cnpj: str = Field(
+        ...,
+        pattern=r"^\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}$",
+        description="Formato: 00.000.000/0000-00",
+    )
+
+
+class CompanyResponse(CompanyBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+
+class UserCreate(BaseModel):
+    """Dados necessários para o registro inicial."""
+
+    username: EmailStr = Field(..., description="E-mail corporativo será o login")
+    password: str = Field(..., min_length=8, description="Senha forte")
+    full_name: str = Field(..., description="Nome completo do usuário")
+    cpf: str = Field(
+        ...,
+        pattern=r"^\d{3}\.\d{3}\.\d{3}-\d{2}$",
+        description="Formato: 000.000.000-00",
+    )
+
+    # Dados da empresa que o usuário diz pertencer
+    company_name: str
+    cnpj: str = Field(..., pattern=r"^\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}$")
+
+
+class UserResponse(BaseModel):
+    """O que devolvemos para o Frontend (NUNCA devolver a senha)"""
+
+    id: int
+    username: str
+    full_name: str
+    cpf: str
+    is_master: bool
+    is_approved: bool
+    company_id: int
+
+    class Config:
+        from_attributes = True
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    username: Optional[str] = None
 
 
 # =====================================================================
