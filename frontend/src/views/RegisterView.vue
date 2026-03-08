@@ -29,6 +29,11 @@
           <input v-model="form.password" type="password" required class="modern-input" :disabled="isLoading" minlength="8" placeholder="Mínimo de 8 caracteres" />
         </div>
 
+        <div class="input-group btn-full">
+          <label class="input-label">Confirmar Senha</label>
+          <input v-model="form.password_confirm" type="password" required class="modern-input" :disabled="isLoading" minlength="8" placeholder="Digite a senha novamente" />
+        </div>
+
         <div class="section-divider btn-full mt-3"><span>Dados da sua Empresa</span></div>
         <p class="text-muted btn-full" style="font-size: 0.8rem; margin-top: -10px;">
           Se for o primeiro cadastro deste CNPJ, você será automaticamente o <strong>Administrador (Master)</strong>.
@@ -73,7 +78,7 @@ const isLoading = ref(false);
 const erro = ref('');
 
 const form = ref({
-  full_name: '', cpf: '', username: '', password: '', company_name: '', cnpj: ''
+  full_name: '', cpf: '', username: '', password: '', password_confirm: '', company_name: '', cnpj: ''
 });
 
 // Máscaras de Input
@@ -99,6 +104,11 @@ const mascaraCNPJ = (v) => {
 };
 
 const registrar = async () => {
+  if (form.value.password !== form.value.password_confirm) {
+    erro.value = 'As senhas digitadas não coincidem. Verifique e tente novamente.';
+    return;
+  }
+
   isLoading.value = true;
   erro.value = '';
   
@@ -107,7 +117,12 @@ const registrar = async () => {
     alert('Conta criada com sucesso! Faça o login.');
     router.push('/login');
   } catch (err) {
-    erro.value = err.response?.data?.detail || 'Erro ao processar o registro. Verifique os dados.';
+    // Tratamento para exibir o erro do model_validator do Pydantic de forma amigável
+    if (err.response?.data?.detail && Array.isArray(err.response.data.detail)) {
+        erro.value = err.response.data.detail[0].msg.replace("Value error, ", "");
+    } else {
+        erro.value = err.response?.data?.detail || 'Erro ao processar o registro. Verifique os dados.';
+    }
   } finally {
     isLoading.value = false;
   }

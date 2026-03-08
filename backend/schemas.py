@@ -4,7 +4,7 @@ from typing import Optional
 
 from models import ContractType
 
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field, EmailStr, model_validator
 
 
 # =====================================================================
@@ -33,6 +33,7 @@ class UserCreate(BaseModel):
 
     username: EmailStr = Field(..., description="E-mail corporativo será o login")
     password: str = Field(..., min_length=8, description="Senha forte")
+    password_confirm: str = Field(..., description="Confirmação da senha")
     full_name: str = Field(..., description="Nome completo do usuário")
     cpf: str = Field(
         ...,
@@ -43,6 +44,13 @@ class UserCreate(BaseModel):
     # Dados da empresa que o usuário diz pertencer
     company_name: str
     cnpj: str = Field(..., pattern=r"^\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}$")
+
+    @model_validator(mode="after")
+    def check_passwords_match(self) -> "UserCreate":
+        # getattr evita o erro caso o Pydantic falhe em injetar o campo antes da validação final
+        if getattr(self, "password", None) != getattr(self, "password_confirm", None):
+            raise ValueError("As senhas não coincidem.")
+        return self
 
 
 class UserResponse(BaseModel):

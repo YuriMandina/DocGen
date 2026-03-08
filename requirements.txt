@@ -10,3 +10,5 @@ black
 flake8
 pylint
 bandit
+bcrypt==4.1.2
+python-jose[cryptography]
