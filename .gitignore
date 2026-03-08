@@ -1,0 +1,17 @@
+# Ambiente Virtual Python
+venv/
+env/
+__pycache__/
+*.pyc
+
+# Variáveis de Ambiente
+.env
+
+# Frontend Node.js
+frontend/node_modules/
+frontend/dist/
+
+# Arquivos de Contratos e Uploads
+backend/templates/*.docx
+backend/templates/*.pdf
+!backend/templates/.keep # Mantém a pasta vazia no git

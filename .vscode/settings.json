@@ -1,0 +1,28 @@
+{
+  // --- Configurações Python ---
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.formatOnSave": true
+  },
+  
+  // Ativa o Flake8 para apontar os erros em tempo real
+  "flake8.args": [
+      "--max-line-length=88",
+      "--extend-ignore=E203,W503,E501" 
+    ],
+  
+
+  "pylint.args": [
+      "--disable=C0111,C0301" 
+    ],
+
+
+  // --- Configurações JavaScript ---
+  "[javascript]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit"
+    }
+  },
+  "python.analysis.autoImportCompletions": true
+}

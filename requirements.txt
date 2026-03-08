@@ -1,0 +1,12 @@
+fastapi==0.109.0
+uvicorn==0.27.0
+sqlalchemy>=2.0.31
+psycopg2-binary==2.9.11
+python-docx==1.1.0
+python-dotenv==1.0.1
+pydantic
+python-multipart
+black
+flake8
+pylint
+bandit
