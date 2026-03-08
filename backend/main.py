@@ -45,21 +45,21 @@ app.add_middleware(
 app.include_router(auth_router)
 
 # =====================================================================
-#                ROTAS: APROVAÇÃO DE USUÁRIOS (MASTER ONLY)
+#                ROTAS: CONTROLE DE ACESSO (MASTER ONLY)
 # =====================================================================
 
 
-@app.get("/users/pending", response_model=List[schemas.UserResponse])
-def get_pending_users(
+@app.get("/users/company", response_model=List[schemas.UserResponse])
+def get_company_users(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_master_user),  # Exige ser MASTER
+    current_user: models.User = Depends(get_current_master_user),
 ):
-    """Lista usuários da mesma empresa que estão aguardando aprovação."""
+    """Lista todos os funcionários da empresa (exceto o próprio Master logado)."""
     return (
         db.query(models.User)
         .filter(
             models.User.company_id == current_user.company_id,
-            models.User.is_approved == False,
+            models.User.id != current_user.id,
         )
         .all()
     )
@@ -71,7 +71,7 @@ def approve_user(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_master_user),
 ):
-    """Aprova a entrada de um novo usuário na empresa."""
+    """Aprova/Restaura o acesso de um usuário."""
     user = (
         db.query(models.User)
         .filter(
@@ -79,13 +79,37 @@ def approve_user(
         )
         .first()
     )
-
     if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+    user.is_approved = True
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@app.put("/users/{user_id}/revoke", response_model=schemas.UserResponse)
+def revoke_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_master_user),
+):
+    """Revoga/Bloqueia o acesso de um usuário existente."""
+    user = (
+        db.query(models.User)
+        .filter(
+            models.User.id == user_id, models.User.company_id == current_user.company_id
+        )
+        .first()
+    )
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+    if user.is_master:
         raise HTTPException(
-            status_code=404, detail="Usuário não encontrado nesta empresa."
+            status_code=403,
+            detail="Você não pode revogar o acesso de um Administrador Master.",
         )
 
-    user.is_approved = True
+    user.is_approved = False
     db.commit()
     db.refresh(user)
     return user

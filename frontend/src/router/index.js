@@ -6,7 +6,7 @@ import TemplatesView from '../views/TemplatesView.vue'
 import GenerateView from '../views/GenerateView.vue'
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
-import ApprovalsView from '../views/ApprovalsView.vue'
+import SettingsView from '../views/SettingsView.vue'
 
 const routes = [
   { path: '/', redirect: '/cargos' },
@@ -18,7 +18,7 @@ const routes = [
   { path: '/funcionarios', name: 'funcionarios', component: EmployeesView, meta: { requiresAuth: true } },
   { path: '/modelos', name: 'modelos', component: TemplatesView, meta: { requiresAuth: true } },
   { path: '/gerar', name: 'gerar', component: GenerateView, meta: { requiresAuth: true } },
-  { path: '/aprovacoes', name: 'aprovacoes', component: ApprovalsView, meta: { requiresAuth: true, requiresMaster: true } },
+  { path: '/configuracoes', name: 'configuracoes', component: SettingsView, meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({

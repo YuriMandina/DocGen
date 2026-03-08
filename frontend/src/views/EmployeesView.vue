@@ -150,35 +150,50 @@
           <form @submit.prevent="salvarEdicao" class="form-grid mt-3">
             <div class="input-group btn-full">
               <label class="input-label">Nome Completo</label>
-              <input v-model="funcEmEdicao.full_name" type="text" required class="modern-input" :disabled="isSubmitting" />
-            </div>
-            <div class="input-group">
-              <label class="input-label">Data de Admissão</label>
-              <input v-model="funcEmEdicao.admission_date" type="date" required class="modern-input" :disabled="isSubmitting" />
-            </div>
-            <div class="input-group">
-              <label class="input-label">Cargo</label>
-              <select v-model="funcEmEdicao.role_id" required class="modern-input" :disabled="isSubmitting">
-                <option v-for="cargo in cargos" :key="cargo.id" :value="cargo.id">{{ cargo.name }}</option>
-              </select>
-            </div>
-            <div class="input-group btn-full">
-              <label class="input-label">Carteira Profissional</label>
-              <input 
-                v-model="funcEmEdicao.professional_card" 
-                @input="funcEmEdicao.professional_card = aplicarMascaraCarteira($event.target.value)"
-                type="text" 
-                placeholder="00123456/00123-UF"
-                pattern="\d{8}/\d{5}-[A-Z]{2}"
-                title="Formato exigido: 00123456/00123-UF"
-                required 
-                class="modern-input" 
-                :disabled="isSubmitting"
-              />
+              <div class="input-wrapper">
+                <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                <input v-model="funcEmEdicao.full_name" type="text" required class="modern-input with-icon" :disabled="isSubmitting" />
+              </div>
             </div>
             
-            <div class="btn-full">
-              <p v-if="erroModal" class="feedback-text error mt-2">{{ erroModal }}</p>
+            <div class="input-group">
+              <label class="input-label">Data de Admissão</label>
+              <div class="input-wrapper">
+                <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                <input v-model="funcEmEdicao.admission_date" type="date" required class="modern-input with-icon" :disabled="isSubmitting" />
+              </div>
+            </div>
+            
+            <div class="input-group">
+              <label class="input-label">Cargo</label>
+              <div class="input-wrapper">
+                <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                <select v-model="funcEmEdicao.role_id" required class="modern-input with-icon" :disabled="isSubmitting">
+                  <option v-for="cargo in cargos" :key="cargo.id" :value="cargo.id">{{ cargo.name }}</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="input-group btn-full">
+              <label class="input-label">Carteira Profissional</label>
+              <div class="input-wrapper">
+                <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" /></svg>
+                <input 
+                  v-model="funcEmEdicao.professional_card" 
+                  @input="funcEmEdicao.professional_card = aplicarMascaraCarteira($event.target.value)"
+                  type="text" 
+                  placeholder="00123456/00123-UF"
+                  pattern="\d{8}/\d{5}-[A-Z]{2}"
+                  title="Formato exigido: 00123456/00123-UF"
+                  required 
+                  class="modern-input with-icon" 
+                  :disabled="isSubmitting"
+                />
+              </div>
+            </div>
+            
+            <div class="btn-full" v-if="erroModal">
+              <p class="feedback-text error mt-2">{{ erroModal }}</p>
             </div>
 
             <div class="modal-actions btn-full mt-3">

@@ -12,6 +12,10 @@ from dependencies import get_current_active_user
 
 router = APIRouter(prefix="/auth", tags=["Autenticação"])
 
+# =====================================================================
+#
+# =====================================================================
+
 
 @router.post(
     "/register",
@@ -117,3 +121,56 @@ def login_for_access_token(
 def get_user_me(current_user: models.User = Depends(get_current_active_user)):
     """Devolve os dados do próprio usuário autenticado."""
     return current_user
+
+
+@router.put("/me", response_model=schemas.UserResponse)
+def update_user_me(
+    user_in: schemas.UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user),
+):
+    """Atualiza os dados cadastrais do usuário logado."""
+    # Verifica se o novo email ou cpf já pertencem a OUTRO usuário
+    if (
+        db.query(models.User)
+        .filter(
+            models.User.username == user_in.username, models.User.id != current_user.id
+        )
+        .first()
+    ):
+        raise HTTPException(
+            status_code=400, detail="Este E-mail já está em uso por outra conta."
+        )
+    if (
+        db.query(models.User)
+        .filter(models.User.cpf == user_in.cpf, models.User.id != current_user.id)
+        .first()
+    ):
+        raise HTTPException(
+            status_code=400, detail="Este CPF já está em uso por outra conta."
+        )
+
+    current_user.full_name = user_in.full_name
+    current_user.username = user_in.username
+    current_user.cpf = user_in.cpf
+
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
+
+@router.put("/password")
+def update_password(
+    pass_in: schemas.PasswordUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user),
+):
+    """Troca a senha do usuário logado com validação da senha atual."""
+    if not security.verify_password(
+        pass_in.current_password, current_user.hashed_password
+    ):
+        raise HTTPException(status_code=400, detail="A senha atual está incorreta.")
+
+    current_user.hashed_password = security.get_password_hash(pass_in.new_password)
+    db.commit()
+    return {"message": "Senha atualizada com sucesso."}

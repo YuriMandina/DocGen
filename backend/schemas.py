@@ -77,6 +77,30 @@ class TokenData(BaseModel):
     username: Optional[str] = None
 
 
+class UserUpdate(BaseModel):
+    """Schema para atualização de dados cadastrais do próprio usuário."""
+
+    full_name: str = Field(..., description="Nome completo")
+    cpf: str = Field(..., pattern=r"^\d{3}\.\d{3}\.\d{3}-\d{2}$")
+    username: EmailStr = Field(..., description="E-mail corporativo")
+
+
+class PasswordUpdate(BaseModel):
+    """Schema para troca segura de senha."""
+
+    current_password: str = Field(..., description="Senha atual para validação")
+    new_password: str = Field(..., min_length=8, description="Nova senha forte")
+    confirm_new_password: str = Field(..., description="Confirmação da nova senha")
+
+    @model_validator(mode="after")
+    def check_passwords_match(self) -> "PasswordUpdate":
+        if getattr(self, "new_password", None) != getattr(
+            self, "confirm_new_password", None
+        ):
+            raise ValueError("As novas senhas não coincidem.")
+        return self
+
+
 # =====================================================================
 #                        DOMÍNIO: CARGOS (ROLES)
 # =====================================================================
